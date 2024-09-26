@@ -1,1 +1,4 @@
-# arkpz-pzpi-22-7-lavrovych-oksana
+ПЗПІ-22-7
+
+Лаврович Оксана
+
