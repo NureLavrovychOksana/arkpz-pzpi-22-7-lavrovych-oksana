@@ -1,1 +1,350 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
+Кафедра програмної інженерії
 
+
+
+
+
+
+Практична робота №2
+з дисципліни: «Аналіз та рефакторинг коду»
+на тему «Методи рефакторингу коду програмного забезпечення»
+
+
+
+
+
+
+Перевірив:
+Сокорчук І.П	Виконала:
+ст. гр. ПЗПІ-22-7
+Лаврович Оксана Степанівна
+
+
+
+
+
+Харків 2024
+«Методи рефакторингу коду програмного забезпечення»
+
+1.	Мета заняття
+Ознайомити студентів з основними рекомендаціями щодо написання чистого, ефективного та підтримуваного коду для різних мов програмування, а також навчити аналізувати та рефакторити код для покращення його якості.
+2.	Завдання
+Студент повинен обрати 3 метода рефакторингу. Методи у студентів не повинні повторюватися. Навести код без рефакторингу та із застосуванням методу на прикладі свого особистого коду зі своїх програм, написаних курсових, лабораторних ( мова програмування для методів будь -яка).
+Книга:     Martin Fowler. Refactoring. Improving the Design of Existing Code– Addison-Wesley Professional, 1999. – 464 p.
+
+Split Temporary Variable	Consolidate Duplicate Conditional Fragments	Decompose Conditional
+
+3.	Хід роботи
+Слайди презентації містять всі обрані методи, приклади рефакторингу коду, і наведені у Додатку А.
+3.1	 Розщеплення тимчасової змінної (Split Temporary Variable)
+Проблема:
+Є тимчасова змінна, якій неодноразово надається значення, але це не змінна циклу і не тимчасова змінна для накопичення результату.
+Усі змінні, які виконують декілька функцій, повинні бути замінені окремою змінною для кожної з цих функцій. Використання однієї і тієї ж змінної на вирішення різних завдань дуже утрудняє читання коду.
+Техніка
+•	Змініть ім'я тимчасової змінної у її оголошенні та першому присвоюванні їй значення.
+•	Оголосіть нову тимчасову змінну із ключовим словом final. • Змініть усі посилання на тимчасову змінну аж до другого присвоєння.
+•	Оголосіть тимчасову змінну на місці другого присвоювання. · Виконайте компіляцію та тестування.
+•	Повторюйте кроки перейменування в місці оголошення та зміни посилань аж до чергового присвоювання.
+Приклад
+У цьому коді тимчасова змінна temp використовується для обчислення двох різних метрик (середній рік публікації та середню кількість сторінок). 
+Код до рефакторингу:
+
+public void DisplayBookStatistics(List<Book> books)
+ {
+     double temp = 0;
+
+     // Розрахунок середнього року видання
+     foreach (var book in books)
+     {
+         temp += book.PublicationYear;
+     }
+     temp /= books.Count;
+     Console.WriteLine($"Average Publication Year: {temp}");
+
+     // Розрахунок середньої кількості сторінок
+     temp = 0;
+     foreach (var book in books)
+     {
+         temp += book.PageCount;
+     }
+     temp /= books.Count;
+     Console.WriteLine($"Average Page Count: {temp}");
+ }
+
+Код після рефакторингу:
+
+public void DisplayBookStatistics(List<Book> books)
+ {
+     // Розрахунок середнього року видання
+     double averagePublicationYear = 0;
+     foreach (var book in books)
+     {
+         averagePublicationYear += book.PublicationYear;
+     }
+     averagePublicationYear /= books.Count;
+     Console.WriteLine($"Average Publication Year: {averagePublicationYear}");
+
+     // Розрахунок середньої кількості сторінок
+     double averagePageCount = 0;
+     foreach (var book in books)
+     {
+         averagePageCount += book.PageCount;
+     }
+     averagePageCount /= books.Count;
+     Console.WriteLine($"Average Page Count: {averagePageCount}");
+ }
+
+Переваги:
+1. Підвищення читабельності коду
+Код із чітко визначеними змінними є легшим для розуміння. Коли кожна змінна має лише одну роль і зрозумілу назву, інші розробники швидше зрозуміють її призначення та логіку.
+2. Зменшення ймовірності помилок
+Коли одна змінна використовується для кількох різних задач, її зміна може ненавмисно вплинути на інші частини коду. Розділення змінних знижує ризик побічних ефектів, оскільки кожна змінна ізольована у своїй ролі.
+3. Дотримання принципу єдиного обов'язку
+У рамках принципу SRP (Single Responsibility Principle) кожна змінна повинна відповідати за одну конкретну задачу. Цей метод рефакторингу забезпечує відповідність цьому принципу, що позитивно впливає на архітектуру та дизайн коду.
+4. Полегшення модифікацій і розширень
+Код із чіткими, однозначними змінними легше змінювати або розширювати. Наприклад, якщо потрібно додати нову функціональність, що використовує обчислення на основі існуючих змінних, ви зможете зробити це без плутанини, пов'язаної з подвійним використанням однієї змінної.
+
+3.2	 Консолідація умовних фрагментів, що дублюються (Consolidate Duplicate Conditional Fragments)
+Проблема:
+Один і той же фрагмент коду є у всіх гілках умовного виразу. Перемістіть його за межі виразу.
+Іноді виявляється, що у всіх галузях умовного оператора виконується той самий фрагмент коду. У такому разі слід перемістити цей код за межі умовного оператора. У результаті стає ясніше, що змінюється, а що залишається незмінним.
+Техніка
+•	Визначте код, який виконується однаково поза залежністю від значення умови.
+•	Якщо загальний код знаходиться на початку, розмістіть його перед умовним оператором.
+•	Якщо загальний код знаходиться в кінці, розмістіть його після умовного оператора.
+•	Якщо загальний код знаходиться в середині, подивіться, чи модифікує щось код, що знаходиться до нього або після нього. Якщо так, загальний код можна перемістити до кінця вперед або назад. Після цього можна його перемістити, як це описано для коду, що знаходиться наприкінці або на початку.
+•	Якщо код складається з кількох пропозицій, треба виділити його методом.
+Приклад:
+У цьому випадку повторюється код для оновлення даних книги, який можна перемістити в одне місце, а в умовній логіці залишити тільки те, що реально змінюється. Оновлення даних книги (наприклад, назва, рейтинг, жанр тощо) має відбуватися в одному місці після перевірки, змінився чи автор.
+Код до рефакторингу:
+
+public void Edit(int idBook, int idAuthor)
+{
+    Author author = LibraryForm.list.authorList.Find(x => x.Id == idAuthor);
+    if (author != null)
+    {
+        string nameAuthor = author.Name;
+        if (addBookForm.txtBoxAuthor.Text != nameAuthor)
+        {
+            string tempString = null;
+            for (int i = 0; i < LibraryForm.list.authorList.Count; i++)
+            {
+                if (LibraryForm.list.authorList[i].Name == addBookForm.txtBoxAuthor.Text)
+                {
+                    tempString = LibraryForm.list.authorList[i].Name;
+                    break;
+                }
+            }
+            if (tempString != null)
+            {
+                LibraryForm.list.authorList.Find(x => x.IdBook == idBook).Id = LibraryForm.list.authorList.Find(x => x.Name == addBookForm.txtBoxAuthor.Text).Id;
+                LibraryForm.list.Books.Find(x => x.Id == idBook).IdAuthor = LibraryForm.list.authorList.Find(x => x.Name == addBookForm.txtBoxAuthor.Text).Id;
+            }
+        }
+        else
+        {
+            LibraryForm.list.Books.Find(x => x.Id == idBook).Title = addBookForm.txtBoxTitle.Text;
+            LibraryForm.list.Books.Find(x => x.Id == idBook).Rating = int.Parse(addBookForm.numericUpDownRating.Text);
+            LibraryForm.list.Books.Find(x => x.Id == idBook).Genre = addBookForm.cmbGenre.Text;
+        }
+    }
+}
+
+Код після рефакторингу:
+
+public void Edit(int idBook, int idAuthor)
+ {
+     Author author = LibraryForm.list.authorList.Find(x => x.Id == idAuthor);
+     if (author != null)
+     {
+         string nameAuthor = author.Name;
+
+         var book = LibraryForm.list.Books.Find(x => x.Id == idBook);
+         book.Title = addBookForm.txtBoxTitle.Text;
+         book.Rating = int.Parse(addBookForm.numericUpDownRating.Text);
+         book.Genre = addBookForm.cmbGenre.Text;
+
+         if (addBookForm.txtBoxAuthor.Text != nameAuthor)
+         {
+             string tempString = null;
+             for (int i = 0; i < LibraryForm.list.authorList.Count; i++)
+             {
+                 if (LibraryForm.list.authorList[i].Name == addBookForm.txtBoxAuthor.Text)
+                 {
+                     tempString = LibraryForm.list.authorList[i].Name;
+                     break;
+                 }
+             }
+             if (tempString != null)
+             {
+                 var newAuthorId = LibraryForm.list.authorList.Find(x => x.Name == addBookForm.txtBoxAuthor.Text).Id;
+                 book.IdAuthor = newAuthorId;
+                 LibraryForm.list.authorList.Find(x => x.IdBook == idBook).Id = newAuthorId;
+             }
+         }
+         else
+         {
+         }
+     }
+ }
+  
+
+Загальний код для оновлення даних книги (назва, рейтинг, жанр) тепер використовується один раз, незалежно від зміни автора. Логіка оновлення автора залишилася всередині умов, але оновлення даних книги відбувається до перевірки чи був змінений автор.
+Переваги: 
+  1. Покращення читабельності коду
+Коли спільний код винесено з умовних блоків, читачеві легше зрозуміти основну логіку. Наявність дублюючих фрагментів в умовах ускладнює сприйняття структури програми. Об’єднання спрощує логіку.
+
+2. Зменшення дублювання коду
+Дублювання є джерелом багатьох проблем у розробці: складнішого внесення змін, вищого ризику помилок і труднощів у тестуванні. Консолідація дозволяє дотримуватись принципу DRY (Don't Repeat Yourself), мінімізуючи кількість повторень одного і того ж коду.
+
+3. Спрощення внесення змін
+Коли дубльований код винесено в один спільний блок, будь-які зміни в його реалізації потрібно вносити лише в одному місці. Це зменшує ризик зробити помилку або пропустити місце, яке потребує модифікації.
+
+4. Зменшення розміру коду
+Код стає коротшим і лаконічнішим, оскільки спільні фрагменти видаляються з кожної гілки умовної конструкції й розташовуються окремо. Це також сприяє ефективнішому використанню ресурсів при читанні та аналізі коду.
+
+3.3	 Декомпозиція умовного оператора (Decompose Conditional)
+Проблема:
+Є складний умовний ланцюжок перевірок (if-then-else). Виділіть методи з умови, частини "then" та частин "else".
+Зазвичай проблема пов'язана з тим, що код як у перевірках умов, так і в діях говорить про те, що відбувається, але легко може затінювати причину, через яку це відбувається.
+Техніка
+• Виділіть умову у власний спосіб.
+• Виділіть частини "then" та "else" у власні методи.
+Приклад:
+ Метод Search має складну вкладену структуру if. Він може бути перероблений, щоб розкласти на менші методи. Умову, яка перевіряє, чи були знайдені автори та книги, можна виділити в окремий метод. Частини коду, які виконуються у випадку, якщо нічого не знайдено, і якщо щось знайдено, також можна виділити окремі методи.
+
+Код до рефакторингу:
+
+public void Search()
+ {
+     string input = FormatSearchInput(libraryForm.txtBoxSearch.Text);
+     List<int> authorIds = LibraryForm.list.SearchAuthorsByPrefix(input);
+     List<int> bookIds = LibraryForm.list.SearchBooksByPrefix(input);
+
+     if (authorIds.Count == 0 && bookIds.Count == 0)
+     {
+         libraryForm.lblNothingFound.Text = "Нічого не знайдено";
+         libraryForm.lblNothingFound.Visible = true;
+
+         libraryForm.dataGridView1.Rows.Clear();
+         LoadingDataGridView();
+     }
+     else
+     {
+         libraryForm.lblNothingFound.Visible = false;
+         libraryForm.dataGridView1.Rows.Clear();
+
+         HashSet<int> addedBooks = new HashSet<int>();
+
+         foreach (var authorId in authorIds)
+         {
+             string name = LibraryForm.list.FindAuthorByAuthorId(authorId);
+
+             foreach (var item in LibraryForm.list.Books)
+             {
+                 if (item.IdAuthor == authorId && !addedBooks.Contains(item.Id))
+                 {
+                     libraryForm.dataGridView1.Rows.Add(authorId, name, item.Title, item.Rating, item.Genre);
+                     addedBooks.Add(item.Id);
+                 }
+             }
+         }
+
+         foreach (var bookId in bookIds)
+         {
+             var book = LibraryForm.list.Books.Find(x => x.Id == bookId);
+             if (book != null && !addedBooks.Contains(book.Id))
+             {
+                 string name = LibraryForm.list.FindAuthorByAuthorId(book.IdAuthor);
+                 libraryForm.dataGridView1.Rows.Add(book.IdAuthor, name, book.Title, book.Rating, book.Genre);
+                 addedBooks.Add(book.Id);
+             }
+         }
+     }
+ }
+
+Код після рефакторингу:
+
+public void Search()
+{
+    string input = FormatSearchInput(libraryForm.txtBoxSearch.Text);
+    List<int> authorIds = LibraryForm.list.SearchAuthorsByPrefix(input);
+    List<int> bookIds = LibraryForm.list.SearchBooksByPrefix(input);
+
+    if (NoResultsFound(authorIds, bookIds))
+    {
+        HandleNoResultsFound();
+    }
+    else
+    {
+        HandleSearchResults(authorIds, bookIds);
+    }
+}
+private bool NoResultsFound(List<int> authorIds, List<int> bookIds)
+{
+    return authorIds.Count == 0 && bookIds.Count == 0;
+}
+
+private void HandleNoResultsFound()
+{
+    libraryForm.lblNothingFound.Text = "Нічого не знайдено";
+    libraryForm.lblNothingFound.Visible = true;
+    libraryForm.dataGridView1.Rows.Clear();
+    LoadingDataGridView();
+}
+
+private void HandleSearchResults(List<int> authorIds, List<int> bookIds)
+{
+    libraryForm.lblNothingFound.Visible = false;
+    libraryForm.dataGridView1.Rows.Clear();
+
+    HashSet<int> addedBooks = new HashSet<int>();
+
+    AddAuthorsBooksToGrid(authorIds, addedBooks);
+    AddBooksToGrid(bookIds, addedBooks);
+}
+
+private void AddAuthorsBooksToGrid(List<int> authorIds, HashSet<int> addedBooks)
+{
+    foreach (var authorId in authorIds)
+    {
+        string name = LibraryForm.list.FindAuthorByAuthorId(authorId);
+
+        foreach (var item in LibraryForm.list.Books)
+        {
+            if (item.IdAuthor == authorId && !addedBooks.Contains(item.Id))
+            {
+                libraryForm.dataGridView1.Rows.Add(authorId, name, item.Title, item.Rating, item.Genre);
+                addedBooks.Add(item.Id);
+            }
+        }
+    }
+}
+
+private void AddBooksToGrid(List<int> bookIds, HashSet<int> addedBooks)
+{
+    foreach (var bookId in bookIds)
+    {
+        var book = LibraryForm.list.Books.Find(x => x.Id == bookId);
+        if (book != null && !addedBooks.Contains(book.Id))
+        {
+            string name = LibraryForm.list.FindAuthorByAuthorId(book.IdAuthor);
+            libraryForm.dataGridView1.Rows.Add(book.IdAuthor, name, book.Title, book.Rating, book.Genre);
+            addedBooks.Add(book.Id);
+        }
+    }
+}
+
+Переваги:
+•	Окремий метод, який описує певний умовний сценарій, робить код зрозумілішим і легшим для сприйняття.
+•	Кожен метод може мати свою власну назву, яка відображає його функціональність, що полегшує розуміння логіки програми.
+•	Методи, які вийшли з умовних операторів, можуть бути використані в інших частинах програми.
+•	Розкладання умовного оператора на окремі методи підвищує модульність коду, що робить його більш гнучким і адаптивним до змін.
+
+4.	Висновки
+Ознайомилася з основними рекомендаціями щодо написання чистого, ефективного та підтримуваного коду для різних мов програмування, а також навчилася аналізувати та рефакторити код для покращення його якості. Провела аналіз та навчилася трьом зазначеним методам рефакторингу. Ознайомилася з книгою Мартина Фаулера «Рефакторинг.Поліпшення існуючого коду».
+ 
+ДОДАТОК А
+Слайди презентації
