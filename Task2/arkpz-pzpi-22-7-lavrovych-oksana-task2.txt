@@ -1,1 +1,597 @@
+Міністерство освіти і науки України
+Харківський національний університет радіоелектроніки
+Кафедра програмної інженерії
+
+
+
+
+
+Лабораторна робота №2
+з дисципліни: «Аналіз та рефакторинг коду»
+на тему «РОЗРОБКА БАЗИ ДАНИХ ДЛЯ СЕРВЕРНОЇ ЧАСТИНИ ПРОГРАМНОЇ СИСТЕМИ ТА ПРИКЛАДНОГО ПРОГРАМНОГО ІНТЕРФЕЙСУ (API)»
+
+
+
+
+
+Перевірив:
+Сокорчук І.П	Виконала:
+ст. гр. ПЗПІ-22-7
+Лаврович Оксана Степанівна
+
+
+
+
+
+Харків 2024
+2	РОЗРОБКА БАЗИ ДАНИХ ДЛЯ СЕРВЕРНОЇ ЧАСТИНИ ПРОГРАМНОЇ СИСТЕМИ ТА ПРИКЛАДНОГО ПРОГРАМНОГО ІНТЕРФЕЙСУ (API)
+
+1.	Мета заняття
+Розробити базу даних для серверної частини програмної системи та прикладного програмного інтерфейсу.
+2.	Завдання
+1. Розробити будову програмної системи.
+2. Створити UML діаграму прецедентів для серверної частини системи.
+3. Створити ER діаграму даних.
+4. Розробити базу даних (БД) програмної системи.
+5. Створити діаграму структури БД.
+6. Розробити функції роботи з БД (ORM або CoRM тощо).
+7. Розробити API (REST або GraphQL, gRPC тощо) для взаємодії серверної
+частини з клієнтами.
+8. Створити специфікацію розробленого API.
+9. Створити програмну реалізацію розробленого API та функцій роботи з БД.
+10.Перевірити роботу створеного програмного коду серверної частини системи.
+3.	Хід роботи
+3.1 Архітектура системи
+1. Клієнтська частина (Frontend)
+Це інтерфейс для користувачів, де вони можуть:
+•	Налаштовувати типи повідомлень.
+•	Вводити дані для геолокації.
+•	Переглядати отримані сповіщення та рекомендації.
+Технології: JavaScript
+Функції:
+•	Форма реєстрації/авторизації.
+•	Панель управління для налаштування повідомлень.
+•	Візуалізація аналітики у вигляді графіків чи карт.
+2. Серверна частина (Backend)
+Сервер обробляє запити, виконує персоналізацію повідомлень, керує базою даних і забезпечує інтеграцію з офіційними джерелами інформації та сенсорами.
+Технології: Node.js з Express, PHP (якщо потрібна CMS)
+Функції:
+•	Обробка вхідних даних від користувачів.
+•	Логіка персоналізації (тип загрози, геолокація).
+•	Взаємодія з API офіційних джерел і сенсорів.
+•	Генерація рекомендацій через аналітичний модуль.
+•	Надсилання сповіщень через інтеграцію з API поштових та SMS-сервісів.
+3. База даних (Database)
+Зберігання даних користувачів, історії сповіщень, даних з офіційних джерел та аналітики.
+Технології: MySQL для структурованих даних. 
+4. Модулі системи
+1.	Модуль сповіщень:
+o	Генерація та надсилання повідомлень.
+o	Інтеграція з поштовими та SMS-сервісами.
+2.	Модуль персоналізації:
+o	Аналіз даних користувача (геолокація, вибраний тип загроз).
+o	Фільтрація відповідних повідомлень.
+3.	Модуль інтеграції:
+o	Отримання даних через API.
+o	Збір даних з сенсорів.
+4.	Модуль аналітики:
+o	Аналіз історії сповіщень.
+o	Генерація рекомендацій на основі статистики.
+5.	Модуль безпеки:
+o	Шифрування персональних даних.
+o	Аутентифікація та авторизація користувачів (OAuth 2.0, JWT).
+
+5. Інтеграція з API та сенсорами
+•	API для SMS та пошти: Twilio, SendGrid, або аналогічні сервіси.
+•	Сенсори: Взаємодія з IoT-обладнанням через MQTT або HTTP-протоколи.
+
+3.2 UML-діаграма прецедентів
+Основні актори:
+1.	Користувач – реєструється, налаштовує сповіщення, отримує їх.
+2.	Система джерел даних – надає інформацію про загрози через API або сенсори.
+3.	SMS/Email-сервіс – забезпечує надсилання сповіщень.
+ 
+Рисунок 1  - UML – діаграма
+
+Також створимо діаграму прецедентів, зосереджуючись на серверній частині, на взаємодії системи для виконання функцій, пов'язаних з обробкою та передачею даних.
+ 
+Рисунок 2 - UML – діаграма
+3.3 Створити ER діаграму даних.
+Нище наведена  ER – діаграма (рисунок 3)
+ 
+Рисунок 3 – ER-діаграма за нотацією Баркера (з використанням «воронячої лапки»)
+Зв’язки між сутностями
+•	Користувачі ↔ Сповіщення для користувача(1:N) : Один користувач може отримати багато сповіщень.
+•	Сповіщення ↔ Сповіщення для користувача(1:N): Одне сповіщення може бути надіслано кільком користувачам.
+•	Локації ↔ Дані IoT(1:N): Одна локація може мати багато IoT-даних (від різних датчиків).
+•	Дані IoT ↔ Загрози(1:N): Один запис IoT-даних може породжувати кілька загроз.
+•	Загрози ↔ Сповіщення(1:N): Одна загроза може породжувати багато сповіщень.
+
+3.4	Розробити базу даних (БД) програмної системи.
+Для бази даних був використаний MySQL та cереда DBeaver. Для створення таблиць був написаний спеціальний SQL запит:
+
+CREATE TABLE Users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    password_hash VARCHAR(255) NOT NULL,
+    notification_type ENUM('SMS', 'Email', 'Both') DEFAULT 'Email',
+    user_type ENUM('standard', 'admin') DEFAULT 'standard'
+);
+
+CREATE TABLE Locations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    location_name VARCHAR(100) NOT NULL,
+    address VARCHAR(255),
+    description TEXT
+);
+
+CREATE TABLE Threats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    threat_type VARCHAR(100) NOT NULL,
+    description TEXT,
+    severity_level INT CHECK (severity_level BETWEEN 1 AND 10),
+    recommended_action TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_id INT,
+    FOREIGN KEY (data_id) REFERENCES IoTData(id)
+);
+
+CREATE TABLE IoTData (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    temperature FLOAT,
+    humidity FLOAT,
+    gas_level FLOAT,
+    smoke_detected BOOLEAN,
+    alert_level INT,
+    location_id INT,
+    FOREIGN KEY (location_id) REFERENCES Locations(id)
+);
+
+CREATE TABLE Alerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    alert_type VARCHAR(50),
+    alert_message TEXT NOT NULL,
+    status ENUM('sent', 'delivered', 'read') DEFAULT 'sent',
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    threat_id INT,
+    FOREIGN KEY (threat_id) REFERENCES Threats(id)
+);
+
+CREATE TABLE UserAlerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    alert_id INT NOT NULL,
+    notification_sent BOOLEAN DEFAULT FALSE,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES Users(id),
+    FOREIGN KEY (alert_id) REFERENCES Alerts(id)
+);
+
+Опис таблиць:
+1.	Users - таблиця для зберігання інформації про користувачів, їх контактні дані та типи сповіщень.
+2.	Locations - таблиця для зберігання даних про локації, включаючи назву, адресу та опис.
+3.	Threats - таблиця для зберігання інформації про загрози, їх типи, описи, рівень серйозності та рекомендації.
+4.	IoTData - таблиця для зберігання даних з пристроїв IoT, таких як температура, вологість, рівень газу та виявлення диму, пов'язані з конкретними локаціями.
+5.	Alerts - таблиця для зберігання сповіщень про загрози, включаючи тип, повідомлення, час створення та статус вирішення.
+6.	User Alerts - таблиця для зберігання інформації про сповіщення, надіслані користувачам, включаючи статус відправлення та час.
+
+3.5	Створити діаграму структури БД.
+Діаграма утвореної бази даних:
+ 
+Рисунок 4 – Діаграма структури БД
+
+3.6	Розробити функції роботи з БД (ORM або CoRM тощо).
+Для роботи з базою даних в Node.js використала ORM, бібліотеку Sequelize. Були розроблені наступні функції, декілька CRUD операцій, та функції реєстрації та логіну:
+1.	getAllUsers: Функція для отримання списку всіх користувачів з бази даних.
+2.	getUserById: Функція для отримання користувача за його унікальним ідентифікатором.
+3.	updateUser: Функція для оновлення даних користувача за його ідентифікатором, якщо користувач існує.
+4.	deleteUser: Функція для видалення користувача з бази даних за його ідентифікатором, якщо користувач існує.
+5.	registerUser: Функція для реєстрації нового користувача, яка перевіряє, чи не існує вже користувач з такою ж електронною поштою.
+6.	loginUser: Функція для входу користувача в систему, яка перевіряє наявність користувача за електронною поштою та валідність пароля.
+Код продемонстрован в Додатку А.
+3.7	 Розробити API (REST або GraphQL, gRPC тощо) для взаємодії серверної частини з клієнтами
+Для реалізації функціоналу нашої системи ми використовуємо REST API (Representational State Transfer), який забезпечує ефективну взаємодію між клієнтом і сервером. REST API працює з використанням стандартних HTTP-методів: GET для отримання даних, POST для створення нових ресурсів, PUT для оновлення існуючих даних і DELETE для їх видалення. Усі ендпоінти структуровані за ресурсами, такими як /api/register для реєстрації, /api/threats для роботи з загрозам, /api/alerts для сповіщень та ін. Дані передаються у форматі JSON, що є стандартом для REST API, і кожен запит містить усю необхідну інформацію для виконання без залежності від попередніх запитів.
+Фрагмент коду(а саме API для користувачів) буде наведений в додатку Б.
+3.8	Створити специфікацію розробленого API
+Для документування API обрано Swagger, що дозволяє автоматично генерувати документацію, полегшуючи розробку та тестування API. 
+ 
+Рисунок 5 – документація розробленого API
+1. API для користувачів (Users)
+•	POST /api/users/register — Реєстрація нового користувача.
+o	Вхід: name, email, phone, password_hash, notification_type, user_type
+o	Вихід: Створений користувач.
+•	POST /api/users/login — Логін користувача.
+o	Вхід: email, password
+o	Вихід: Користувач, якщо пароль правильний.
+•	GET /api/users — Отримати всіх користувачів.
+o	Вихід: Список всіх користувачів.
+•	GET /api/users/:id — Отримати користувача за ID.
+o	Вихід: Користувач з вказаним ID.
+•	PUT /api/users/:id — Оновити дані користувача.
+o	Вхід: Дані для оновлення (наприклад, phone, notification_type).
+o	Вихід: Оновлений користувач.
+•	DELETE /api/users/:id — Видалити користувача.
+o	Вихід: Повідомлення про успішне видалення.
+
+2. API для локацій (Locations)
+•	POST /api/locations — Створити нову локацію.
+o	Вхід: location_name, address, description
+o	Вихід: Створена локація.
+•	GET /api/locations — Отримати всі локації.
+o	Вихід: Список всіх локацій.
+•	GET /api/locations/:id — Отримати локацію за ID.
+o	Вихід: Локація з вказаним ID.
+•	PUT /api/locations/:id — Оновити дані локації.
+o	Вхід: location_name, address, description
+o	Вихід: Оновлена локація.
+•	DELETE /api/locations/:id — Видалити локацію.
+o	Вихід: Повідомлення про успішне видалення.
+
+3. API для загроз (Threats)
+•	POST /api/threats — Створити нову загрозу.
+o	Вхід: threat_type, description, severity_level, recommended_action, data_id
+o	Вихід: Створена загроза.
+•	GET /api/threats — Отримати всі загрози.
+o	Вихід: Список всіх загроз.
+•	GET /api/threats/:id — Отримати загрозу за ID.
+o	Вихід: Загроза з вказаним ID.
+•	PUT /api/threats/:id — Оновити дані загрози.
+o	Вхід: threat_type, description, severity_level, recommended_action
+o	Вихід: Оновлена загроза.
+•	DELETE /api/threats/:id — Видалити загрозу.
+o	Вихід: Повідомлення про успішне видалення.
+
+4. API для IoT даних (IoTData)
+•	POST /api/iot-data — Створити нові дані IoT.
+o	Вхід: temperature, humidity, gas_level, smoke_detected, alert_level, location_id
+o	Вихід: Створені дані IoT.
+•	GET /api/iot-data — Отримати всі дані IoT.
+o	Вихід: Список всіх IoT даних.
+•	GET /api/iot-data/:id — Отримати IoT дані за ID.
+o	Вихід: Дані IoT з вказаним ID.
+•	GET /api/iot-data/alerts/:alert_level — Отримати дані IoT, які відповідають рівню тривоги.
+o	Вихід: Список даних IoT, що мають певний рівень тривоги.
+
+5. API для сповіщень (Alerts)
+•	POST /api/alerts — Створити нове сповіщення.
+o	Вхід: alert_type, alert_message, threat_id
+o	Вихід: Створене сповіщення.
+•	GET /api/alerts — Отримати всі сповіщення.
+o	Вихід: Список всіх сповіщень.
+•	GET /api/alerts/:id — Отримати сповіщення за ID.
+o	Вихід: Сповіщення з вказаним ID.
+•	PUT /api/alerts/:id — Оновити статус сповіщення.
+o	Вхід: status (наприклад, sent, delivered, read)
+o	Вихід: Оновлене сповіщення.
+•	DELETE /api/alerts/:id — Видалити сповіщення.
+o	Вихід: Повідомлення про успішне видалення.
+
+6. API для сповіщень для користувачів (UserAlerts)
+•	POST /api/user-alerts — Створити сповіщення для користувача.
+o	Вхід: user_id, alert_id, notification_sent
+o	Вихід: Створене сповіщення для користувача.
+•	GET /api/user-alerts/:user_id — Отримати всі сповіщення для користувача за його ID.
+o	Вихід: Список всіх сповіщень для користувача.
+•	PUT /api/user-alerts/:id — Оновити статус сповіщення для користувача.
+o	Вхід: notification_sent (наприклад, true або false)
+o	Вихід: Оновлене сповіщення для користувача.
+•	DELETE /api/user-alerts/:id — Видалити сповіщення для користувача.
+o	Вихід: Повідомлення про успішне видалення.
+
+7. API для отримання поточних загроз та даних
+•	GET /api/current-threats — Отримати поточні загрози, що потребують уваги.
+o	Вихід: Список загроз, які мають високий рівень небезпеки (наприклад, severity_level >= 7).
+•	GET /api/locations/:id/threats — Отримати загрози для конкретної локації.
+o	Вихід: Список загроз для вказаної локації.
+•	GET /api/iot-data/recent — Отримати останні дані IoT для моніторингу.
+o	Вихід: Список останніх даних IoT.
+
+4.	Висновки
+У результаті виконання роботи було розроблено програмну систему, що включає серверну частину, базу даних та API для взаємодії з клієнтами. Було створено UML діаграму прецедентів, яка чітко визначила взаємодію між користувачами та системою, а також ER діаграму для відображення структури даних, що забезпечує коректну організацію і зберігання інформації в базі даних.
+ 
+Додаток А
+ Логіка взаємодії серверної частини з БД
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
+
+const getAllUsers = async () => {
+  return await User.findAll();
+};
+
+const getUserById = async (id) => {
+  return await User.findByPk(id);
+};
+
+const updateUser = async (id, updates) => {
+  const user = await User.findByPk(id);
+  if (user) {
+    return await user.update(updates);
+  }
+  throw new Error('User not found');
+};
+
+const deleteUser = async (id) => {
+  const user = await User.findByPk(id);
+  if (user) {
+    await user.destroy();
+    return true;
+  }
+  throw new Error('User not found');
+};
+
+const loginUser = async (email, password) => {
+  // Знайти користувача за email
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Перевірити пароль
+  const isPasswordValid = await bcrypt.compare(password, user.get('password_hash'));
+  if (!isPasswordValid) {
+    throw new Error('Invalid password');
+  }
+
+  return user;
+};
+
+const registerUser = async (userData) => {
+    const saltRounds = 10;
+    // Перевірка, чи користувач із такою поштою вже існує
+    const existingUser = await User.findOne({ where: { email: userData.email } });
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+  
+    // Хешування пароля
+    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+  
+    // Створення нового користувача з хешованим паролем
+    const user = await User.create({
+      ...userData,
+      password_hash: hashedPassword, // Замість пароля зберігаємо хеш
+    });
+  
+    return user;
+  };
+
+module.exports = {
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  loginUser,
+  registerUser,
+};
+
+ 
+Додаток Б 
+Логіка взаємодії серверної частини з клієнтами
+  'use strict';
+
+const express = require('express');
+const {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  loginUser,
+  registerUser,
+} = require('../services/userService');
+const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const UserRouter = express.Router();
+
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'User API',
+      version: '1.0.0',
+      description: 'API for managing users',
+    },
+    servers: [
+      {
+        url: 'http://localhost:4000', // API server
+      },
+    ],
+  },
+  apis: ['./src/routes/userRoutes.js'], // Path to the files where the API routes are defined
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+// Adding Swagger UI
+UserRouter.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Register a new user
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Create a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ */
+UserRouter.post('/register', async (req, res) => {
+  try {
+    const user = await registerUser(req.body);
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Login
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: User login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful login
+ *       400:
+ *         description: Invalid login credentials
+ */
+UserRouter.post('/login', async (req, res) => {
+  try {
+    const user = await loginUser(req.body.email, req.body.password);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get all users
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Get all users
+ *     responses:
+ *       200:
+ *         description: List of all users
+ */
+UserRouter.get('/', async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get a user by ID
+/**
+ * @swagger
+ * /{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User found
+ *       400:
+ *         description: User not found
+ */
+UserRouter.get('/:id', async (req, res) => {
+  try {
+    const user = await getUserById(Number(req.params.id));
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update user
+/**
+ * @swagger
+ * /{id}:
+ *   put:
+ *     summary: Update user data
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Error updating user
+ */
+UserRouter.put('/:id', async (req, res) => {
+  try {
+    const user = await updateUser(Number(req.params.id), req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete user
+/**
+ * @swagger
+ * /{id}:
+ *   delete:
+ *     summary: Delete a user
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Error deleting user
+ */
+UserRouter.delete('/:id', async (req, res) => {
+  try {
+    await deleteUser(Number(req.params.id));
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+module.exports = UserRouter;
+
+
+
+
 
